@@ -33,25 +33,25 @@ class BaseRqResp:
         self.vault = vault
 
     @property
-    def ContentLength(self) -> int:
+    def content_length(self) -> int:
         """
         data content length
         """
         if self.file:
             if self.file.has_file:
-                return len(self.content) + len(self.file.Generate())
+                return len(self.content) + len(self.file.generate())
         return len(self.content)
 
-    def Generate(self) -> bytes:
+    def generate(self) -> bytes:
         """
         Generate the data
         """
         if self.file:
             if self.file.has_file:
-                return self.GenerateHeaders() + self.file.Generate() + self.content
-        return self.GenerateHeaders() + self.content
+                return self.generate_headers() + self.file.generate() + self.content
+        return self.generate_headers() + self.content
 
-    def GenerateHeaders(self) -> bytes:
+    def generate_headers(self) -> bytes:
         """
         Generate the data headers
         """
@@ -59,13 +59,13 @@ class BaseRqResp:
             return f"{key}:{value}\r\n"
 
         headers = ""
-        headers += add_header("CONTENT_LENGTH", str(self.ContentLength))
+        headers += add_header("CONTENT_LENGTH", str(self.content_length))
         headers += add_header("COMMAND", self.command)
 
         if self.file:
             if self.file.has_file:
                 headers += add_header("FILE_NAME", self.file.filename)
-                headers += add_header("FILE_SIZE", str(self.file.Size()))
+                headers += add_header("FILE_SIZE", str(self.file.size()))
                 headers += add_header("FILE_BOUNDARY", self.file.border)
                 headers += add_header("HAS_FILE", "true" if self.file.has_file else "false")
 

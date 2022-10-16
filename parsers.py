@@ -2,7 +2,7 @@
     Basic utilities for parsing the requests and responses.
 """
 
-def ParseHeader(data: bytes):
+def parse_header(data: bytes):
     """
     Function for parsing headers
     """

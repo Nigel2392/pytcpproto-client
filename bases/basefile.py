@@ -1,5 +1,4 @@
 import os
-import os
 
 class BaseFile:
     """Represents a file object sent over the network via the tcpproto protocol."""
@@ -12,7 +11,7 @@ class BaseFile:
         self.filename = filename
         self.data = data
         if self.filename and not border:
-            self.border = self.Generate_Border()
+            self.border = self.generate_border()
         else:
             self.border = border
         if self.filename and self.border and self.data:
@@ -35,19 +34,19 @@ class BaseFile:
             "has_file": self.has_file
         }
 
-    def Generate(self) -> bytes:
+    def generate(self) -> bytes:
         """
         File content -> prepend to the request content
         """
         return self.starting_border + self.data + self.ending_border
 
-    def Generate_Border(self) -> bytes:
+    def generate_border(self) -> bytes:
         """
         Generate the file border
         """
-        return "FILE_BORDER-" + self.filename.encode() + b"-FILE_BORDER"
+        return bytes("FILE_BORDER-" + self.filename + "-FILE_BORDER")
 
-    def Size(self) -> int:
+    def size(self) -> int:
         """
         File size
         """
@@ -67,20 +66,27 @@ class BaseFile:
         """
         return b"----" + self.border.encode() + b"----"
 
-    def Read(self, path: str):
+    def read(self, path: str):
         """
         Read the file from a path
         """
+        if "/" in path:
+            delim = "/"
+        else:
+            delim = "\\"
         with open(path, "rb") as file:
             self.data = file.read()
-            self.filename = path.split("/")[-1]
-            self.has_file = True
-            self.border = self.Generate_Border()
+        file.close()
+        self.filename = path.split(delim)[-1]
+        self.has_file = True
+        self.border = self.generate_border()
+        return self
     
-    def Write(self, path: str):
+    def write(self, path: str):
         """
         Write the file to a path
         """
         path = os.path.join(path, self.filename)
         with open(path, "wb") as file:
             file.write(self.data)
+        file.close()

@@ -13,7 +13,7 @@ from .request import Request
 from .response import Response
 from .files import File
 from .logger import Logger
-from .parsers import ParseHeader
+from .parsers import parse_header
 
 """
     Client module to connect to the server with.
@@ -55,7 +55,7 @@ class Client():
             "vault": self.vault
         }
 
-    def Send(self, request: Request) -> Response:
+    def send(self, request: Request) -> Response:
         """
         Send a request to the server. 
         The server will return a response.
@@ -68,8 +68,8 @@ class Client():
                 value = base64.b64encode(value)
                 request.headers["CLIENT_VAULT-"+key] = value.decode()
         self.client_vault = {}
-        self.sock.send(request.Generate())
-        resp = self.Receive()
+        self.sock.send(request.generate())
+        resp = self.receive()
         return resp
 
     def Close(self):
@@ -78,7 +78,7 @@ class Client():
         """
         self.sock.close()
 
-    def Receive(self) -> Response:
+    def receive(self) -> Response:
         """
         Receive a response from the server
         """
@@ -102,7 +102,7 @@ class Client():
         chunk = self.sock.recv(self.buffer_size)
         data += chunk
         if b"\r\n\r\n" in data:
-            headers, content = ParseHeader(data)
+            headers, content = parse_header(data)
             keys = list(headers.keys())
             for key in keys:
                 if key.startswith("REMEMBER-"):
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     request = Request(file=file, content=b"sdfsdf Worfsdfsdfsdfld!", command="SET")
     request.headers["Content-Type"] = "text/plain"
     client = Client("127.0.0.1", 22392, "PUBKEY.pem", 4096)
-    resp = client.Send(request)
+    resp = client.send(request)
     logger = Logger("debug")
     logger.Test("Response 1:")
     print(resp.headers)
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     print(resp.vault)
     print(resp.content)
     request = Request(content=b"Hello world!", command="GET")
-    response = client.Send(request)
+    response = client.send(request)
     logger.Test("Response 2:")
     print(response.headers)
     print(response.cookies)
