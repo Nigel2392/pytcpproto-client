@@ -1,4 +1,5 @@
 import os
+import os
 
 class BaseFile:
     """Represents a file object sent over the network via the tcpproto protocol."""
@@ -7,10 +8,13 @@ class BaseFile:
     border = ""
     has_file = False
 
-    def __init__(self, filename: str=None, data: bytes=None, border: str="FILE_BORDER-FILE_BORDER"):
+    def __init__(self, filename: str=None, data: bytes=None, border: str=None):
         self.filename = filename
         self.data = data
-        self.border = border
+        if self.filename and not border:
+            self.border = self.Generate_Border()
+        else:
+            self.border = border
         if self.filename and self.border and self.data:
             self.has_file = True
 
