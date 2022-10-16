@@ -13,7 +13,7 @@ from .request import Request
 from .response import Response
 from .files import File
 from .logger import Logger
-from .parsers import parse_header
+from .parsers import parse_header,parse_file
 
 """
     Client module to connect to the server with.
@@ -64,10 +64,21 @@ class Client():
         request.cookies = self.cookies
         if hasattr(self, "rsa_key"):
             for key, value in self.client_vault.items():
-                value = self.rsa_key.encrypt(value.encode(), padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA512()), algorithm=hashes.SHA512(), label=None))
+                # Encrypt the client vault
+                value = self.rsa_key.encrypt(value.encode(), 
+                    padding.OAEP(
+                        # Server uses sha512 to hash the key
+                        mgf=padding.MGF1(algorithm=hashes.SHA512()), 
+                        algorithm=hashes.SHA512(), 
+                        label=None
+                    )
+                )
+                # Encode the encrypted data to base64
                 value = base64.b64encode(value)
                 request.headers["CLIENT_VAULT-"+key] = value.decode()
+        # Reset the client vault
         self.client_vault = {}
+        # Send the request
         self.sock.send(request.generate())
         resp = self.receive()
         return resp
@@ -85,8 +96,12 @@ class Client():
         headers, content = self.rcv_header()
         content_length = int(headers["CONTENT_LENGTH"])
         content += self.rcv_content(content_length, content)
-        # Initialize the request (Will be used as response)
+
         resp = Response()
+        file, content = parse_file(headers, content)
+        if file:
+            resp.file = file
+
         resp.headers = headers
         resp.content = content
         resp.cookies = self.cookies
@@ -161,6 +176,7 @@ if __name__ == "__main__":
     else:
         print("Error")
         print(data)
+
 
 
 
